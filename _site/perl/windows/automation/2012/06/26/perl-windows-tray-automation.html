@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>Laziness, Impatience, and Hubris - </title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="post-template">
+
+    <header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="/">Home</a>
+        <a class="subscribe-button icon-feed" href="/rss.xml">Subscribe</a>
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        <header class="post-header">
+            <h1 class="post-title">Perl Windows - Grab all the system tray icons & get their co-ordinates</h1>
+            <section class="post-meta">                
+                <time class="post-date" datetime="2012-06-26">26 Jun 2012</time>
+                 
+                    on perl, windows, and automation 
+                
+            </section>
+        </header>
+
+<!--         <header class="post-header">
+            <a id="blog-logo" href="blog url">
+                
+                    <img src="true" alt="Laziness, Impatience, and Hubris" />
+                 
+            </a>
+        </header> -->
+        
+        <!-- <span class="post-meta">
+            <time datetime="2012-06-26">26 Jun 2012</time>
+             
+                on perl, windows, and automation 
+            
+        </span> -->
+
+        <!-- <h1 class="post-title">Perl Windows - Grab all the system tray icons & get their co-ordinates</h1> -->
+
+        <section class="post-content">
+            <p>While automating applications on Windows, every now &amp; then I run in to a situation where I have to find a tray icon &amp; do some mouse operations on it. And for the most part, I overlooked it as it was just a small part of my automation needs. Well, it was time to scratch that small itch as it was bothering me. So with the help of <a href="http://stackoverflow.com/questions/11199287/using-perl-how-can-obtain-information-about-the-icons-in-windows-taskbar-notif">Sinan on StackOverflow</a>, I ended up writing this script.</p>
+
+<p>This should work on both 32 &amp; 64-bit platforms:</p>
+
+<div class="highlight"><pre><code class="language-perl" data-lang="perl"><span class="k">use</span> <span class="n">strict</span><span class="p">;</span>
+<span class="k">use</span> <span class="n">warnings</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nn">Data::</span><span class="n">Dumper</span><span class="p">;</span>
+<span class="k">use</span> <span class="nn">Win32::</span><span class="n">API</span><span class="p">;</span>
+<span class="k">use</span> <span class="nn">Win32::</span><span class="n">OLE</span> <span class="sx">qw(in)</span><span class="p">;</span>
+<span class="k">use</span> <span class="nn">Win32::OLE::</span><span class="n">Variant</span><span class="p">;</span>
+<span class="k">use</span> <span class="nn">Win32::</span><span class="n">GuiTest</span> <span class="sx">qw(</span>
+<span class="sx">    AllocateVirtualBuffer</span>
+<span class="sx">    FreeVirtualBuffer</span>
+<span class="sx">    ReadFromVirtualBuffer</span>
+<span class="sx">    FindWindowLike</span>
+<span class="sx">    SendMessage</span>
+<span class="sx">)</span><span class="p">;</span>
+
+<span class="c1"># Used for WMI</span>
+<span class="k">use</span> <span class="n">constant</span> <span class="n">wbemFlagReturnImmediately</span> <span class="o">=&gt;</span> <span class="mh">0x10</span><span class="p">;</span>
+<span class="k">use</span> <span class="n">constant</span> <span class="n">wbemFlagForwardOnly</span>       <span class="o">=&gt;</span> <span class="mh">0x20</span><span class="p">;</span>
+
+<span class="c1"># SendMessage commands</span>
+<span class="k">use</span> <span class="n">constant</span> <span class="n">TB_BUTTONCOUNT</span>   <span class="o">=&gt;</span> <span class="mh">0x0418</span><span class="p">;</span>
+<span class="k">use</span> <span class="n">constant</span> <span class="n">TB_GETBUTTONTEXT</span> <span class="o">=&gt;</span> <span class="mh">0x041B</span><span class="p">;</span>
+<span class="k">use</span> <span class="n">constant</span> <span class="n">TB_GETBUTTONINFO</span> <span class="o">=&gt;</span> <span class="mh">0x0441</span><span class="p">;</span>
+<span class="k">use</span> <span class="n">constant</span> <span class="n">TB_GETITEMRECT</span>   <span class="o">=&gt;</span> <span class="mh">0x041D</span><span class="p">;</span>
+<span class="k">use</span> <span class="n">constant</span> <span class="n">TB_GETBUTTON</span>     <span class="o">=&gt;</span> <span class="mh">0x0417</span><span class="p">;</span>
+
+<span class="k">sub </span><span class="nf">get_windows_os_details</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+    <span class="k">my</span> <span class="nv">$ret</span><span class="p">;</span>
+
+    <span class="k">my</span> <span class="nv">$objWMIService</span> <span class="o">=</span>
+      <span class="nn">Win32::</span><span class="n">OLE</span><span class="o">-&gt;</span><span class="n">GetObject</span><span class="p">(</span><span class="s">&quot;winmgmts:\\\\localhost\\root\\CIMV2&quot;</span><span class="p">)</span>
+      <span class="ow">or</span> <span class="nb">die</span> <span class="s">&quot;WMI connection failed.\n&quot;</span><span class="p">;</span>
+    <span class="k">my</span> <span class="nv">$colItems</span> <span class="o">=</span>
+      <span class="nv">$objWMIService</span><span class="o">-&gt;</span><span class="n">ExecQuery</span><span class="p">(</span><span class="s">&quot;SELECT * FROM Win32_OperatingSystem&quot;</span><span class="p">,</span>
+                               <span class="s">&quot;WQL&quot;</span><span class="p">,</span>
+                               <span class="n">wbemFlagReturnImmediately</span> <span class="o">|</span> <span class="n">wbemFlagForwardOnly</span><span class="p">);</span>
+
+    <span class="k">my</span> <span class="nv">$objItem</span><span class="p">;</span>
+    <span class="k">foreach</span> <span class="nv">$objItem</span> <span class="p">(</span><span class="n">in</span> <span class="nv">$colItems</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$ret</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;osname&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$objItem</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">Caption</span><span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="nv">$colItems</span> <span class="o">=</span>
+      <span class="nv">$objWMIService</span><span class="o">-&gt;</span><span class="n">ExecQuery</span><span class="p">(</span><span class="s">&quot;SELECT * FROM Win32_Processor&quot;</span><span class="p">,</span>
+                               <span class="s">&quot;WQL&quot;</span><span class="p">,</span>
+                               <span class="n">wbemFlagReturnImmediately</span> <span class="o">|</span> <span class="n">wbemFlagForwardOnly</span><span class="p">);</span>
+
+    <span class="k">foreach</span> <span class="nv">$objItem</span> <span class="p">(</span><span class="n">in</span> <span class="nv">$colItems</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$ret</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;osbit&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$objItem</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">AddressWidth</span><span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nv">$ret</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">sub </span><span class="nf">get_process_list</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="nv">$ret</span><span class="p">;</span>
+    <span class="k">my</span> <span class="nv">$class</span> <span class="o">=</span> <span class="s">&quot;winmgmts:{impersonationLevel=impersonate}\\\\.\\Root\\cimv2&quot;</span><span class="p">;</span>
+    <span class="k">my</span> <span class="nv">$wmi</span> <span class="o">=</span> <span class="nn">Win32::</span><span class="n">OLE</span><span class="o">-&gt;</span><span class="n">GetObject</span><span class="p">(</span><span class="nv">$class</span><span class="p">)</span> <span class="o">||</span> <span class="nb">die</span><span class="p">;</span>
+    <span class="k">my</span> <span class="nv">$plist</span> <span class="o">=</span> <span class="nv">$wmi</span><span class="o">-&gt;</span><span class="n">InstancesOf</span><span class="p">(</span> <span class="s">&quot;Win32_Process&quot;</span> <span class="p">);</span>
+    <span class="k">foreach</span> <span class="k">my</span> <span class="nv">$proc</span> <span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="nv">$plist</span><span class="p">))</span> <span class="p">{</span>
+        <span class="nv">$ret</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$proc</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;ProcessID&#39;</span><span class="p">}}</span> <span class="o">=</span> <span class="nv">$proc</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;Name&#39;</span><span class="p">};</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nv">$ret</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">sub </span><span class="nf">get_tray_handle</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="p">(</span><span class="nv">$tray_hwnd</span><span class="p">)</span> <span class="o">=</span> <span class="n">FindWindowLike</span><span class="p">(</span><span class="nb">undef</span><span class="p">,</span> <span class="nb">undef</span><span class="p">,</span> <span class="s">&#39;TrayNotifyWnd&#39;</span><span class="p">);</span>
+    <span class="k">my</span> <span class="p">(</span><span class="nv">$toolbar_hwnd</span><span class="p">)</span> <span class="o">=</span> <span class="n">FindWindowLike</span><span class="p">(</span><span class="nv">$tray_hwnd</span><span class="p">,</span> <span class="nb">undef</span><span class="p">,</span> <span class="s">&#39;ToolbarWindow&#39;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$toolbar_hwnd</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">sub </span><span class="nf">get_tray_icon_count</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="nv">$hWnd</span> <span class="o">=</span> <span class="n">get_tray_handle</span><span class="p">();</span> 
+    <span class="k">return</span> <span class="n">SendMessage</span><span class="p">(</span><span class="nv">$hWnd</span><span class="p">,</span> <span class="n">TB_BUTTONCOUNT</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="k">my</span> <span class="nv">$os</span> <span class="o">=</span> <span class="n">get_windows_os_details</span><span class="p">();</span>
+
+<span class="c1">#http://msdn.microsoft.com/en-us/library/windows/desktop/bb760476(v=vs.85).aspx</span>
+<span class="k">my</span> <span class="nv">$tb_button</span><span class="p">;</span>
+<span class="k">if</span> <span class="p">(</span><span class="nv">$os</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;osbit&#39;</span><span class="p">}</span> <span class="o">==</span> <span class="mi">64</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$tb_button</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;pack&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="s">&#39;i i C C A6 L L&#39;</span><span class="p">;</span>
+    <span class="nv">$tb_button</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;size&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="mh">0x20</span><span class="p">;</span> <span class="c1"># 32 bytes</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nv">$tb_button</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;pack&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="s">&#39;i i C C A2 L L&#39;</span><span class="p">;</span>
+    <span class="nv">$tb_button</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;size&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="mh">0x1C</span><span class="p">;</span> <span class="c1"># 28 bytes</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Get tray handle </span>
+<span class="k">my</span> <span class="nv">$tray_hwnd</span> <span class="o">=</span> <span class="n">get_tray_handle</span><span class="p">();</span>
+<span class="k">my</span> <span class="nv">$icon_count</span> <span class="o">=</span> <span class="n">get_tray_icon_count</span><span class="p">();</span>
+
+<span class="c1"># All the processes &amp; their PIDs</span>
+<span class="k">my</span> <span class="nv">$proc_list</span> <span class="o">=</span> <span class="n">get_process_list</span><span class="p">();</span>
+
+<span class="c1"># Allocate virtual buffer for TBBUTTON Structure (depending on 32-bit on 64-bit) in</span>
+<span class="c1"># tray process</span>
+<span class="k">my</span> <span class="nv">$buffer</span> <span class="o">=</span> <span class="n">AllocateVirtualBuffer</span><span class="p">(</span><span class="nv">$tray_hwnd</span><span class="p">,</span> <span class="nv">$tb_button</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;size&#39;</span><span class="p">});</span>
+<span class="k">my</span> <span class="nv">$icons</span><span class="p">;</span>
+
+<span class="k">for</span> <span class="p">(</span><span class="k">my</span> <span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="nv">$icon_count</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1"># Get the button structure represented by index by using TB_GETBUTTON</span>
+    <span class="c1"># message &amp; then copy it to the local process space.</span>
+    <span class="k">my</span> <span class="nv">$status</span> <span class="o">=</span> <span class="n">SendMessage</span><span class="p">(</span><span class="nv">$tray_hwnd</span><span class="p">,</span> <span class="n">TB_GETBUTTON</span><span class="p">,</span> <span class="nv">$i</span><span class="p">,</span> <span class="nv">$buffer</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">ptr</span><span class="p">});</span>
+    <span class="k">my</span> <span class="nv">$result</span> <span class="o">=</span> <span class="n">ReadFromVirtualBuffer</span><span class="p">(</span><span class="nv">$buffer</span><span class="p">,</span> <span class="nv">$tb_button</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;size&#39;</span><span class="p">});</span>
+    <span class="k">my</span> <span class="p">(</span><span class="nv">$iBitmap</span><span class="p">,</span> <span class="nv">$idCommand</span><span class="p">,</span> <span class="nv">$fsState</span><span class="p">,</span> <span class="nv">$fsStyle</span><span class="p">,</span> <span class="nv">$bReserved</span><span class="p">,</span> <span class="nv">$dwData</span><span class="p">,</span> <span class="nv">$iString</span><span class="p">)</span> <span class="o">=</span> <span class="nb">unpack</span> <span class="nv">$tb_button</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;pack&#39;</span><span class="p">},</span> <span class="nv">$result</span><span class="p">;</span>
+    
+    <span class="c1"># Find the owner handle for the button</span>
+    <span class="k">my</span> <span class="nv">$read_process</span> <span class="o">=</span> <span class="nn">Win32::</span><span class="n">API</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">(</span><span class="s">&#39;kernel32&#39;</span><span class="p">,</span> <span class="s">&#39;ReadProcessMemory&#39;</span><span class="p">,</span> <span class="s">&#39;NNPIN&#39;</span><span class="p">,</span><span class="s">&#39;I&#39;</span><span class="p">);</span>
+    <span class="k">my</span> <span class="nv">$extra_data</span> <span class="o">=</span> <span class="nb">pack</span><span class="p">(</span><span class="s">&#39;L2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="nv">$read_process</span><span class="o">-&gt;</span><span class="n">Call</span><span class="p">(</span><span class="nv">$buffer</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">process</span><span class="p">},</span> <span class="nv">$dwData</span><span class="p">,</span> <span class="nv">$extra_data</span><span class="p">,</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">$extra_data</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="k">my</span> <span class="p">(</span><span class="nv">$owner_hwnd</span><span class="p">,</span> <span class="nv">$id</span><span class="p">)</span> <span class="o">=</span> <span class="nb">unpack</span><span class="p">(</span><span class="s">&#39;L2&#39;</span><span class="p">,</span> <span class="nv">$extra_data</span><span class="p">);</span>
+    
+    <span class="c1"># Find the PID of the owner process</span>
+    <span class="k">my</span> <span class="nv">$window_thread_proc_id</span> <span class="o">=</span> <span class="nn">Win32::</span><span class="n">API</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">(</span><span class="s">&#39;user32&#39;</span><span class="p">,</span> <span class="s">&quot;GetWindowThreadProcessId&quot;</span><span class="p">,</span> <span class="s">&#39;LP&#39;</span><span class="p">,</span> <span class="s">&#39;N&#39;</span><span class="p">);</span>
+    <span class="k">my</span> <span class="nv">$lpdwPID</span> <span class="o">=</span> <span class="nb">pack</span> <span class="s">&#39;L&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">my</span> <span class="nv">$pid</span> <span class="o">=</span> <span class="nv">$window_thread_proc_id</span><span class="o">-&gt;</span><span class="n">Call</span><span class="p">(</span><span class="nv">$owner_hwnd</span><span class="p">,</span> <span class="nv">$lpdwPID</span><span class="p">);</span>
+    <span class="k">my</span> <span class="nv">$dwPID</span> <span class="o">=</span> <span class="nb">unpack</span> <span class="s">&#39;L&#39;</span><span class="p">,</span> <span class="nv">$lpdwPID</span><span class="p">;</span>
+    
+    <span class="c1"># Find the icon coordinates</span>
+    <span class="k">my</span> <span class="nv">$rect</span> <span class="o">=</span> <span class="nb">pack</span> <span class="p">(</span><span class="s">&#39;IIII&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">SendMessage</span><span class="p">(</span><span class="nv">$tray_hwnd</span><span class="p">,</span> <span class="n">TB_GETITEMRECT</span><span class="p">,</span> <span class="nv">$i</span><span class="p">,</span> <span class="nv">$buffer</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">ptr</span><span class="p">});</span>
+    <span class="k">my</span> <span class="nv">$map_window_points</span> <span class="o">=</span> <span class="nn">Win32::</span><span class="n">API</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">(</span><span class="s">&#39;user32&#39;</span><span class="p">,</span> <span class="s">&#39;MapWindowPoints&#39;</span><span class="p">,</span> <span class="s">&#39;NIPI&#39;</span><span class="p">,</span> <span class="s">&#39;I&#39;</span><span class="p">);</span>
+    <span class="k">my</span> <span class="nv">$ret</span> <span class="o">=</span> <span class="nv">$map_window_points</span><span class="o">-&gt;</span><span class="n">Call</span><span class="p">(</span><span class="nv">$tray_hwnd</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">$rect</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+    <span class="k">my</span> <span class="p">(</span><span class="nv">$left</span><span class="p">,</span> <span class="nv">$top</span><span class="p">,</span> <span class="nv">$right</span><span class="p">,</span> <span class="nv">$bottom</span><span class="p">)</span> <span class="o">=</span> <span class="nb">unpack</span><span class="p">(</span><span class="s">&#39;IIII&#39;</span><span class="p">,</span> <span class="nv">$rect</span><span class="p">);</span>
+    
+    <span class="c1"># Fill our icons hash list</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">defined</span> <span class="nv">$proc_list</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$dwPID</span><span class="p">})</span> <span class="p">{</span>
+        <span class="nv">$icons</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$proc_list</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$dwPID</span><span class="p">}}</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;hwnd&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$owner_hwnd</span><span class="p">;</span>
+        <span class="nv">$icons</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$proc_list</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$dwPID</span><span class="p">}}</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;pid&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$dwPID</span><span class="p">;</span>
+        <span class="nv">$icons</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$proc_list</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$dwPID</span><span class="p">}}</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;x&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$left</span><span class="p">;</span>
+        <span class="nv">$icons</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$proc_list</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$dwPID</span><span class="p">}}</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;y&#39;</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$top</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># We don&#39;t need the virtual buffer any more</span>
+<span class="n">FreeVirtualBuffer</span><span class="p">(</span><span class="nv">$buffer</span><span class="p">);</span>
+
+<span class="k">print</span> <span class="n">Dumper</span><span class="p">(</span><span class="nv">$icons</span><span class="p">);</span></code></pre></div>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+            <!-- If we want to display author's name and bio -->
+            
+                <figure class="author-image">
+                    <a class="img" href="/" style="background-image: url(/assets/images/profile.png)">
+                    <span class="hidden">Aditya Ivaturi's Picture</span></a>
+                </figure>
+                <section class="author">
+                    <!-- Author Name -->
+                    <h4> Aditya Ivaturi </h4>
+                    <!-- Author Bio -->
+                    <p> 
+                        
+                    </p>
+                </section>                
+            
+
+            <!-- Share links section -->
+            <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?text=Perl Windows - Grab all the system tray icons & get their co-ordinates&amp;url=http://www.ivaturi.org/perl/windows/automation/2012/06/26/perl-windows-tray-automation.html"
+        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.ivaturi.org/perl/windows/automation/2012/06/26/perl-windows-tray-automation.html"
+        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.ivaturi.org/perl/windows/automation/2012/06/26/perl-windows-tray-automation.html"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+            
+            <!-- Disqus comments -->
+            
+            
+        </footer>
+
+    </article>
+
+</main>
+
+    <footer class="site-footer clearfix">
+      <section class="copyright">
+        <a href="/">Laziness, Impatience, and Hubris</a> &copy; 
+               &bull; All rights reserved.
+      </section>
+      <section class="poweredby">Made with Jekyll using 
+        <a href="http://github.com/rosario/kasper">Kasper theme</a>
+      </section>
+    </footer>
+    
+    <script type="text/javascript" src="/assets/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>   
+</body>
+</html>
