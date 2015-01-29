@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>Laziness, Impatience, and Hubris - </title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="post-template">
+
+    <header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="/">Home</a>
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        <header class="post-header">
+            <h2 class="post-title">Add getCSSCount command to Selenium</h2>
+            <section class="post-meta">                
+                <time class="post-date" datetime="2009-12-30">30 Dec 2009</time>
+                 
+                    on hacking, selenium, and getcsscount 
+                
+            </section>
+        </header>
+
+<!--         <header class="post-header">
+            <a id="blog-logo" href="blog url">
+                
+                    <img src="true" alt="Laziness, Impatience, and Hubris" />
+                 
+            </a>
+        </header> -->
+        
+        <!-- <span class="post-meta">
+            <time datetime="2009-12-30">30 Dec 2009</time>
+             
+                on hacking, selenium, and getcsscount 
+            
+        </span> -->
+
+        <!-- <h1 class="post-title">Add getCSSCount command to Selenium</h1> -->
+
+        <section class="post-content">
+            <p>getXpathCount is a very useful command that Selenium devs provided. And once you started enjoying coding with it, you realized IE was throwing roadblocks since XPath is dog slow on it (what else is new?). So you look around and you&#39;re told to switch to CSS Selectors (or locators). Well, the very first thing you&#39;re looking for is the count equivalent for CSS and it is conveniently missing. So, I ended up hacking the Selenenium core to add the missing command - &quot;getCSSCount&quot;.</p>
+
+<p>BTW, I hacked the core that comes with the selenium-server.jar and I believe you can achieve the same result using user-extensions.js. Incidently, I understood the core better just by looking at the unjarred files, than reading the user-extensions doc - go figure. So just to be clear - my way is not the only way to do it and it works for me. Here are the steps:</p>
+
+<ul>
+<li>Unjar the selenium-server.jar.</li>
+<li>Inside the core/scripts directory you&#39;ll have to hack 2 files - selenium-api,js, selenium-browserbot.js</li>
+<li>In Selenium-api.js add this function just below getXpathCount function (or download the attached file &amp; replace it).</li>
+</ul>
+
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">Selenium</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getCSSCount</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">locator</span><span class="p">)</span> <span class="p">{</span>
+    <span class="cm">/**</span>
+<span class="cm">    * Returns the number of nodes that match the specified xpath, eg. &quot;table&quot; would give</span>
+<span class="cm">    * the number of tables.</span>
+<span class="cm">    * </span>
+<span class="cm">    * @param xpath the xpath expression to evaluate. do NOT wrap this expression in a &#39;count()&#39; function; we will do that for you.</span>
+<span class="cm">    * @return number the number of nodes that match the specified xpath</span>
+<span class="cm">    */</span>
+    <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">browserbot</span><span class="p">.</span><span class="nx">evaluateCSSCount</span><span class="p">(</span><span class="nx">locator</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">browserbot</span><span class="p">.</span><span class="nx">getDocument</span><span class="p">());</span>
+    <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+<span class="p">}</span></code></pre></div>
+
+<ul>
+<li>In selenium-browserbot.js add this function just below evaluateXpathCount function (or download the attached file &amp; replace it).</li>
+</ul>
+
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="cm">/**</span>
+<span class="cm"> * Returns the number of css results.</span>
+<span class="cm"> */</span>
+<span class="nx">BrowserBot</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">evaluateCSSCount</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">css</span><span class="p">,</span> <span class="nx">inDocument</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">eval_css</span><span class="p">(</span><span class="nx">css</span><span class="p">,</span> <span class="nx">inDocument</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nx">results</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+<span class="p">};</span></code></pre></div>
+
+<ul>
+<li>Now, in iedoc-core.xml &amp; iedoc.xml (in the core directory) add these lines after the getXpathCount block (or download the attached files &amp; replace them).</li>
+</ul>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;function</span> <span class="na">name=</span><span class="s">&quot;getCSSCount&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;return</span> <span class="na">type=</span><span class="s">&quot;number&quot;</span><span class="nt">&gt;</span>the number of nodes that match the specified CSS Locator<span class="nt">&lt;/return&gt;</span>
+<span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;xpath&quot;</span><span class="nt">&gt;</span>the CSS Locator expression to evaluate. do NOT wrap this expression in a &#39;count()&#39; function; we will do that for you.<span class="nt">&lt;/param&gt;</span>
+<span class="nt">&lt;comment&gt;</span>Returns the number of nodes that match the specified CSS Locator, eg. &quot;table&quot; would give
+the number of tables.<span class="nt">&lt;/comment&gt;</span>
+<span class="nt">&lt;/function&gt;</span></code></pre></div>
+
+<ul>
+<li>Now jar the whole file back using this command in the root directory - &quot;jar cmf META-INF\MANIFEST.MF selenium-server.jar .&quot; (note the dot at the end).</li>
+<li>The next step is to obviously expose this functionality through your driver - I use Perl &amp; I&#39;ll provide you the example here. Take a look at it &amp; modify your respective drivers, it is very easy. So get to your Selenium.pm file &amp; add this function (or download the attached file &amp; just replace your local copy):</li>
+</ul>
+
+<div class="highlight"><pre><code class="language-perl" data-lang="perl"><span class="cm">=item $sel-E&lt;gt&gt;get_css_count($selector)</span>
+<span class="cm">Returns the number of nodes that match the specified xpath, eg. &quot;table&quot; would givethe number of tables.</span>
+<span class="cm">=over</span>
+<span class="cm">$selector is the selector expression to evaluate. do NOT wrap this expression in a &#39;count()&#39; function; we will do that for you.</span>
+<span class="cm">=back</span>
+<span class="cm">=over</span>
+<span class="cm">Returns the number of nodes that match the specified selector</span>
+<span class="cm">=back</span>
+<span class="cm">=cut</span>
+<span class="k">sub </span><span class="nf">get_css_count</span> <span class="p">{</span>
+    <span class="k">my</span> <span class="nv">$self</span> <span class="o">=</span> <span class="nb">shift</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">get_number</span><span class="p">(</span><span class="s">&quot;getCSSCount&quot;</span><span class="p">,</span> <span class="nv">@_</span><span class="p">);</span>
+<span class="p">}</span></code></pre></div>
+ 
+
+<p>That is all that is required. Now you have getCSSCount available for your testing needs. For the Perl driver, here is how you&#39;d use it:</p>
+
+<div class="highlight"><pre><code class="language-perl" data-lang="perl"><span class="k">my</span> <span class="nv">$val</span> <span class="o">=</span> <span class="nv">$sel</span><span class="o">-&gt;</span><span class="n">get_css_count</span><span class="p">(</span><span class="s">&quot;table[class=&#39;tblList&#39;]&gt;tbody&gt;tr&quot;</span><span class="p">);</span>
+<span class="k">print</span> <span class="s">&quot;val: $val\n&quot;</span><span class="p">;</span></code></pre></div>
+ 
+
+<p>From the above example, it&#39;ll give me the number of rows in a table of class tblList. Note that you don&#39;t have to use the &quot;css=&quot; prefix.</p>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+            <!-- If we want to display author's name and bio -->
+            
+                <figure class="author-image">
+                    <a class="img" href="/" style="background-image: url(/assets/images/profile.png)">
+                    <span class="hidden">Aditya Ivaturi's Picture</span></a>
+                </figure>
+                <section class="author">
+                    <!-- Author Name -->
+                    <h4> Aditya Ivaturi </h4>
+                    <!-- Author Bio -->
+                    <p> 
+                        
+                    </p>
+                </section>                
+            
+
+            <!-- Share links section -->
+            <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?text=Add getCSSCount command to Selenium&amp;url=http://www.ivaturi.org/hacking/selenium/getcsscount/2009/12/30/selenium-getcsscount.html"
+        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.ivaturi.org/hacking/selenium/getcsscount/2009/12/30/selenium-getcsscount.html"
+        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.ivaturi.org/hacking/selenium/getcsscount/2009/12/30/selenium-getcsscount.html"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+            
+            <!-- Disqus comments -->
+            
+            
+        </footer>
+
+    </article>
+
+</main>
+
+    <footer class="site-footer clearfix">
+      <section class="copyright">
+        <a href="/">Laziness, Impatience, and Hubris</a> &copy; 
+               &bull; All rights reserved.
+      </section>
+      <section class="poweredby">Made with Jekyll using 
+        <a href="http://github.com/rosario/kasper">Kasper theme</a>
+      </section>
+    </footer>
+    
+    <script type="text/javascript" src="/assets/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>   
+</body>
+</html>

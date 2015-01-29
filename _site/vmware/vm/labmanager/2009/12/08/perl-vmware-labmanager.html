@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>Laziness, Impatience, and Hubris - </title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="post-template">
+
+    <header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="/">Home</a>
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        <header class="post-header">
+            <h2 class="post-title">VMWare Lab Manager and Perl</h2>
+            <section class="post-meta">                
+                <time class="post-date" datetime="2009-12-08">08 Dec 2009</time>
+                 
+                    on vmware, vm, and labmanager 
+                
+            </section>
+        </header>
+
+<!--         <header class="post-header">
+            <a id="blog-logo" href="blog url">
+                
+                    <img src="true" alt="Laziness, Impatience, and Hubris" />
+                 
+            </a>
+        </header> -->
+        
+        <!-- <span class="post-meta">
+            <time datetime="2009-12-08">08 Dec 2009</time>
+             
+                on vmware, vm, and labmanager 
+            
+        </span> -->
+
+        <!-- <h1 class="post-title">VMWare Lab Manager and Perl</h1> -->
+
+        <section class="post-content">
+            <p>VMware&#39;s Lab Manager is an amazing tool to have for testing organizations (which was originally designed by a company called Akimbi). But this post is not about what it is &amp; how it can be useful. This post is to give you an example on  how you can consume its SOAP API from Perl. We use Lab Manager extensively for all our feature testing &amp; automation. For automation, you can deploy, undeploy and change some of the vm properties using the SOAP API. Lab Manager also has more &quot;<a href="https://communities.vmware.com/community/vmtn/vcenter/labmanager/content?filterID=contentstatus%5Bpublished%5D%7Eobjecttype%7Eobjecttype%5Bdocument%5D">internal API</a>&quot;, which is not officially supported but can be used for more control of what kind of automation you wanna do. </p>
+
+<p>Anyhoo, for my group I ended up creating a simple perl module to deploy &amp; undeploy (and delete) library configurations. For SOAP, I used SOAP::Lite, which is very widely used &amp; supported module. The attached module is a working example. Just remember that each request to the LM server requires that you send auth headers (read the LM API documentation for further info). get<em>auth</em>header accomplishes that in my module. </p>
+
+<p>The module has its own POD to help you out. If you optimize it &amp; add more methods to it, please let me know.</p>
+
+<p>Project page: <a href="https://github.com/aivaturi/VMware-LabManager">VMware-LabManager</a></p>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+            <!-- If we want to display author's name and bio -->
+            
+                <figure class="author-image">
+                    <a class="img" href="/" style="background-image: url(/assets/images/profile.png)">
+                    <span class="hidden">Aditya Ivaturi's Picture</span></a>
+                </figure>
+                <section class="author">
+                    <!-- Author Name -->
+                    <h4> Aditya Ivaturi </h4>
+                    <!-- Author Bio -->
+                    <p> 
+                        
+                    </p>
+                </section>                
+            
+
+            <!-- Share links section -->
+            <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?text=VMWare Lab Manager and Perl&amp;url=http://www.ivaturi.org/vmware/vm/labmanager/2009/12/08/perl-vmware-labmanager.html"
+        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.ivaturi.org/vmware/vm/labmanager/2009/12/08/perl-vmware-labmanager.html"
+        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.ivaturi.org/vmware/vm/labmanager/2009/12/08/perl-vmware-labmanager.html"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+            
+            <!-- Disqus comments -->
+            
+            
+        </footer>
+
+    </article>
+
+</main>
+
+    <footer class="site-footer clearfix">
+      <section class="copyright">
+        <a href="/">Laziness, Impatience, and Hubris</a> &copy; 
+               &bull; All rights reserved.
+      </section>
+      <section class="poweredby">Made with Jekyll using 
+        <a href="http://github.com/rosario/kasper">Kasper theme</a>
+      </section>
+    </footer>
+    
+    <script type="text/javascript" src="/assets/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>   
+</body>
+</html>

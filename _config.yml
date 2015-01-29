@@ -5,7 +5,7 @@ name: Laziness, Impatience, and Hubris
 markdown: redcarpet
 highlighter: pygments
 logo: true
-paginate: 15
+paginate: 10
 baseurl: /
 domain_name: 'http://www.ivaturi.org'
 google_analytics: 'UA-XXXXXXXX-X'

@@ -41,6 +41,38 @@
       <pubDate>Wed, 03 Feb 2010 08:14:00 -0800</pubDate>
       <dc:date>2010-02-03T08:14:00-08:00</dc:date>
     </item>
+    <item>
+      <title>Add getCSSCount command to Selenium</title>
+      <link>blog url/hacking/selenium/getcsscount/2009/12/30/selenium-getcsscount.html</link>
+      <description>&lt;p&gt;getXpathCount is a very useful command that Selenium devs provided. And once you started enjoying coding with it, you realized IE was throwing roadblocks since XPath is dog slow on it (what else is new?). So you look around and you&amp;#39;re told to switch to CSS Selectors (or locators). Well, the very first thing you&amp;#39;re looking for is the count equivalent for CSS and it is conveniently missing. So, I ended up hacking the Selenenium core to add the missing command - &amp;quot;getCSSCount&amp;quot;.&lt;/p&gt;
+</description>
+      <pubDate>Wed, 30 Dec 2009 07:35:00 -0800</pubDate>
+      <dc:date>2009-12-30T07:35:00-08:00</dc:date>
+    </item>
+    <item>
+      <title>Create your own VMWare Connection Broker</title>
+      <link>blog url/vmware/vm/connection-broker/2009/12/15/create-vmware-connection-broker.html</link>
+      <description>&lt;p&gt;First of all, &amp;quot;Connection Broker&amp;quot; is a highly glorified marketing term to say that this piece of software will allow you to connect to your Virtual Machine based on some &amp;quot;rules&amp;quot; (access, authorization, availability etc and the more &amp;quot;rules&amp;quot; you add, it becomes more complex) and hence the &amp;quot;broker&amp;quot; part. In this post, I&amp;#39;ll be concentrating on VMware since I am more familiar with it, but you can pretty much implement this connection broker for the Sun &amp;amp; Citrix solutions as well. It looks complicated, but it isn&amp;#39;t, that is mostly because the excellent SDK that they provide.&lt;/p&gt;
+</description>
+      <pubDate>Tue, 15 Dec 2009 03:45:00 -0800</pubDate>
+      <dc:date>2009-12-15T03:45:00-08:00</dc:date>
+    </item>
+    <item>
+      <title>VMWare Lab Manager and Perl</title>
+      <link>blog url/vmware/vm/labmanager/2009/12/08/perl-vmware-labmanager.html</link>
+      <description>&lt;p&gt;VMware&amp;#39;s Lab Manager is an amazing tool to have for testing organizations (which was originally designed by a company called Akimbi). But this post is not about what it is &amp;amp; how it can be useful. This post is to give you an example on  how you can consume its SOAP API from Perl. We use Lab Manager extensively for all our feature testing &amp;amp; automation. For automation, you can deploy, undeploy and change some of the vm properties using the SOAP API. Lab Manager also has more &amp;quot;&lt;a href=&quot;https://communities.vmware.com/community/vmtn/vcenter/labmanager/content?filterID=contentstatus%5Bpublished%5D%7Eobjecttype%7Eobjecttype%5Bdocument%5D&quot;&gt;internal API&lt;/a&gt;&amp;quot;, which is not officially supported but can be used for more control of what kind of automation you wanna do. &lt;/p&gt;
+</description>
+      <pubDate>Tue, 08 Dec 2009 13:46:00 -0800</pubDate>
+      <dc:date>2009-12-08T13:46:00-08:00</dc:date>
+    </item>
+    <item>
+      <title>Doxygen and Perl POD</title>
+      <link>blog url/perl/doxygen/2009/12/05/perl-doxygen.html</link>
+      <description>&lt;p&gt;If you have ever dealt with Perl modules on CPAN, you will immediately notice the widespread use of POD to document every thing. And then most POD processors do a simple conversion to HTML (or for that matter many other formats) for proper presentation. pod2html is a very good tool for what it does but when you are maintaining frameworks written entirely in Perl, a simple POD wouldn&amp;#39;t be the only documentation that you&amp;#39;ll need especially if you want your co-worker to just read it &amp;amp; pick up where you left off. You need to present a little bit more &amp;quot;structure&amp;quot; to your documentation than simply providing description &amp;amp; synopsis for each module. So, when some one refers to framework documentation they are typically not looking for just your method descriptions but a lot more than that like for e.g. an object model or inheritance diagram or the whole frameworks package structure. Sure you can tell them to open up the whole package tree &amp;amp; look at it, but that is just rude - especially with Perl.&lt;/p&gt;
+</description>
+      <pubDate>Sat, 05 Dec 2009 08:27:00 -0800</pubDate>
+      <dc:date>2009-12-05T08:27:00-08:00</dc:date>
+    </item>
     <dc:date>2012-06-26T10:34:00-07:00</dc:date>
   </channel>
 </rss>
