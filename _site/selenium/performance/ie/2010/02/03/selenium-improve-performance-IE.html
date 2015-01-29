@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>Laziness, Impatience, and Hubris - </title>
+    <meta name="description" content="" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="post-template">
+
+    <header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="/">Home</a>
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        <header class="post-header">
+            <h2 class="post-title">Hacking Selenium to improve its performance on IE</h2>
+            <section class="post-meta">                
+                <time class="post-date" datetime="2010-02-03">03 Feb 2010</time>
+                 
+                    on selenium, performance, and ie 
+                
+            </section>
+        </header>
+
+<!--         <header class="post-header">
+            <a id="blog-logo" href="blog url">
+                
+                    <img src="true" alt="Laziness, Impatience, and Hubris" />
+                 
+            </a>
+        </header> -->
+        
+        <!-- <span class="post-meta">
+            <time datetime="2010-02-03">03 Feb 2010</time>
+             
+                on selenium, performance, and ie 
+            
+        </span> -->
+
+        <!-- <h1 class="post-title">Hacking Selenium to improve its performance on IE</h1> -->
+
+        <section class="post-content">
+            <p>TL;DR of the post below; You have to perform all these steps &amp; in some instances, you can squeeze out better performance from other browsers too:</p>
+
+<ol>
+<li>Switch to &quot;javascript-xpath&quot;. The default ajaxslt is unbearably slow when it comes to IE. I don&#39;t even know why it is still distributed with Selenium.</li>
+<li>Inject javascript-xpath in to the DOM of your app under test - each time it changes. In our case, processing speed jumped at least 10 times by doing this. You might have reservations about modifying your app under test but this step is for all practical purposes - harmless &amp; javascript-xpath remains dormant in browsers where xpath support is already built in (read - any browser other that IE).</li>
+<li>Offload repetitive processing to javascript through user extensions &amp; use &quot;context nodes&quot; where possible - specifically where you have to read table listing. More details in the description below.</li>
+<li>This is highly optional but convert your ids to xpath. Yes, you heard that right - xpath look up (with the first 2 steps above) is at least 3 times faster than plain id lookup in IE.</li>
+</ol>
+
+<p>All the above will practically bring your IE performance really close to that of Firefox. Now for the original post with details:</p>
+
+<p>Here is some info on what we did to improve the IE performance with regards to Selenium. Before we get started, you have to familiarize yourself with a few key related technologies:</p>
+
+<ul>
+<li>XPath - <a href="http://www.w3.org/TR/xpath/">http://www.w3.org/TR/xpath/</a></li>
+<li>CSS Selectors - <a href="http://www.w3.org/TR/css3-selectors/">http://www.w3.org/TR/css3-selectors/</a></li>
+<li>DOM - <a href="http://www.w3.org/DOM/">http://www.w3.org/DOM/</a></li>
+<li>JSON - <a href="http://www.json.org/">http://www.json.org/</a></li>
+</ul>
+
+<p>Of course, you also have to know what Selenium is, how it works &amp; a basic idea of its architecture to understand the problem &amp; how to solve it. All major browsers in the market (FF, Chrome, Safari) except IE include XPath engines in their browsers. This makes is extremely simple to query a web element on the page directly through JavaScript. For an intro to the API, please read this document - <a href="https://developer.mozilla.org/En/Introduction_to_using_XPath_in_JavaScript">https://developer.mozilla.org/En/Introduction<em>to</em>using<em>XPath</em>in_JavaScript</a>. Selenium (apart from other locators) uses XPath to help you locate elements on a web page. But since IE does not have a native XPath engine, it is actually implemented as a JavaSript Library by 3rd party. Google has its own implementation known as ajaxslt, which is the default in Selenium for XPath processing if native support is unavailable. But that is where the problem starts.</p>
+
+<h5>The Problem</h5>
+
+<p>Selenium launches the app under test browser window in two modes - single window &amp; multi window. Default is always multi window wherein, the first one is the driver window which processes all the commands &amp; the second window is the actual app under test. In single window mode, the app under test is loaded in to the lower frame, which means the app under test cannot be frame busting - meaning the app under test should not have any frames or popup windows. Since our app is frame busting, we have to use the default mode - multi window. When you send a command to evaluate an XPath query, the driver window uses the DOM handle of the app under test &amp; runs that query by traversing the DOM. </p>
+
+<p>In FF, this is amazingly fast as it has a native support for XPath, but on IE the driver window uses the external XPath JavaScript library to do the same. But, the evaluation gets progressively slow on large set of elements due to 2 main reasons:</p>
+
+<ol>
+<li>Extremely slow JavaScript engine of IE </li>
+<li>Constant chatter between the driver window &amp; the app under test window, which was addressed recently by the Selenium devs (check out the latest code from http://code.google.com/p/selenium). The driver window ends up doing a DOM traversal on the app under test after processing the XPath query. </li>
+</ol>
+
+<p>And on top of those, there was another problem - ajaxslt was itself very slow. Fortunately, there is another library called <a href="http://coderepos.org/share/wiki/JavaScript-XPath">javascript-xpath</a> and in Selenium you can switch to that library to improve the performance of your XPath processing. Inside Selenium, it didn&#39;t really help much but outside of Selenium the processing was blazingly fast. A lot of discussion ensued with the developers to convince them that this was in no way a usable solution. You can read all about it here - http://groups.google.com/group/selenium-developers/browse_thread/thread/160a92fcacb12a62 and subsequently a bug was filed with the relevant info http://code.google.com/p/selenium/issues/detail?id=307.</p>
+
+<h5>CSS Selectors to rescue?</h5>
+
+<p>Our automation framework depends on Selenium to interact with the web pages (Juniper SSL VPN admin pages). It has various &quot;get&quot; &amp; &quot;set&quot; methods to read &amp; write values to those web pages. We implemented a convenient method in our framework called &quot;table-list&quot;, which reads the list of items listed in a specific table format and was widely used across all the admin pages. Reads are always costly as individual pages can be huge for e.g. Auth Servers page (linked to the bug above) was taking about 25 minutes to finish listing the auth servers with the ajaxslt library. For comparison, on FF it was taking close to 4 seconds. So after digging in the forums for a while, CSS selectors was offered as a faster alternative. </p>
+
+<p>But CSS Selectors themselves weren&#39;t that blazingly fast. When we re-implemented that &quot;table-list&quot; method using CSS Selectors, the time of execution dropped down to 6 minutes, but still, it was really slow. So, we started looking for other alternatives and in one of those experiments we realized that all this chatter between the two browser windows was slowing down thing &amp; we could probably improve the performance a bit if we had javascript-xpath library on the app under test window. We did exactly that - once the app under test window is loaded, we modify the DOM &amp; inject the javascript-xpath library. This actually sped up over all performance on IVE Admin pages from login onwards and our &quot;table-list&quot; dropped down to just over 4 minutes. This still was not acceptable.</p>
+
+<h5>&quot;Context nodes&quot; &amp; injecting javascript-xpath</h5>
+
+<p>If you have ever worked with libxml2 XML processing library, you&#39;ll know about a little nugget known as &quot;context&quot; nodes. In a structured document like XML &amp; XHTML, you can traverse the document as a tree &amp; if you want to do repetitive processing on a set of nodes, you chose the parent of those nodes &amp; make it a temporary root node and this node is known as &quot;context&quot; node. That means all your further processing will work based on this particular context &amp; you don&#39;t have to traverse the whole document for each processing of a query. Well there should be something similar in XPath too right? Yes of coursei, <a href="http://groups.google.com/group/comp.lang.javascript/browse_thread/thread/a59ce20639c74ba1/a9d9f53e88e5ebb5">there was</a>.</p>
+
+<p>If you look at the test document of the Auth Servers page, attached to the bug filed with Selenium, there are over 800 tables in that page (don&#39;t ask me why - I still don&#39;t know). So whenever we ran some thing like //table[@class=&#39;tblList&#39;]  it&#39;d go through the whole document (with all those 800 tables) &amp; do a search for that table and then drill down for eventual table cell where our content resides. With context nodes (outside of selenium), the whole &quot;table-list&quot; operation dropped down to 900 milliseconds, since you&#39;re not searching through 800 tables  anymore. There was a hurdle though; Selenium does not support returning object back to the client driver - only data. That means, we could never get the context node back from Selenium. So, we decided to completely off load &quot;table-list&quot; processing to JavaScript using the user-extensions feature of Selenium. </p>
+
+<p>Using user-extensions, you can extend Selenium &amp; create your own commands. And thus the getList command was born, which does exactly the same as &quot;table-list&quot;, only it was implemented in JavaScript &amp; not Perl. We used JSON to build our data structure, serialize it &amp; send it over the wire to Perl Client driver. The execution time dropped down to 2 seconds for that command on IE - mission accomplished! On a side note - in FF this same method will finish execution in milliseconds.</p>
+
+<p>Now, that we solved the issue of listing the content, we feared that the general &quot;reads&quot; on IE for input elements with no ID, would be slow too and indeed it was. Our IVE web page templates didn&#39;t have IDs for elements - only names &amp; values. So when you try to read the input elements with name/value attribute, the DOM traversal was horrendously slow in IE. So the solution was to inject javascript-xpath at runtime on every single page &amp; convert the element names to XPath on the fly &amp; process them. Well, this brought down the processing time of each lookup from over 15 seconds to milliseconds on IE. All these changes dramatically improved the performance &amp; brought it very close to the performance of Selenium on FF. </p>
+
+<p>At this point, you might ask if it is wise to modify app under test? Well, it is a judgement call &amp; in our case we&#39;re modifying app under test to inject the javascript-xpath to improve the performance of XPath locators on IE. javascript-xpath does not interfere or modify any thing else on your document&#39;s DOM and is in fact dormant in browsers which have native support for XPath. As I see it, it was really not an issue. </p>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+            <!-- If we want to display author's name and bio -->
+            
+                <figure class="author-image">
+                    <a class="img" href="/" style="background-image: url(/assets/images/profile.png)">
+                    <span class="hidden">Aditya Ivaturi's Picture</span></a>
+                </figure>
+                <section class="author">
+                    <!-- Author Name -->
+                    <h4> Aditya Ivaturi </h4>
+                    <!-- Author Bio -->
+                    <p> 
+                        
+                    </p>
+                </section>                
+            
+
+            <!-- Share links section -->
+            <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?text=Hacking Selenium to improve its performance on IE&amp;url=http://www.ivaturi.org/selenium/performance/ie/2010/02/03/selenium-improve-performance-IE.html"
+        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://www.ivaturi.org/selenium/performance/ie/2010/02/03/selenium-improve-performance-IE.html"
+        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://www.ivaturi.org/selenium/performance/ie/2010/02/03/selenium-improve-performance-IE.html"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+            
+            <!-- Disqus comments -->
+            
+            
+        </footer>
+
+    </article>
+
+</main>
+
+    <footer class="site-footer clearfix">
+      <section class="copyright">
+        <a href="/">Laziness, Impatience, and Hubris</a> &copy; 
+               &bull; All rights reserved.
+      </section>
+      <section class="poweredby">Made with Jekyll using 
+        <a href="http://github.com/rosario/kasper">Kasper theme</a>
+      </section>
+    </footer>
+    
+    <script type="text/javascript" src="/assets/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>   
+</body>
+</html>

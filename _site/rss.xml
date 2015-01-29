@@ -25,6 +25,22 @@
       <pubDate>Fri, 23 Jul 2010 10:29:00 -0700</pubDate>
       <dc:date>2010-07-23T10:29:00-07:00</dc:date>
     </item>
+    <item>
+      <title>Replace QTP with Selenium + AutoIt + Applescript - Part I</title>
+      <link>blog url/qtp/selenium/automation/2010/06/13/replace-qtp-with-selenium.html</link>
+      <description>&lt;p&gt;I hate QTP. Why? Because it sucks. Of course, QTP fanboys will immediately jump up &amp;amp; down stating that I don&amp;#39;t know how to use QTP. On the contrary, I know exactly what I am talking about. As of this writing, QTP still does not support Windows 7, heck it still doesn&amp;#39;t support Firefox 3.6! Are you kidding me? Well, apart from HP&amp;#39;s snail pace development process, I have other problems with the tool itself. Like its really retarded scripting engine (which uses vbscript), which does not provide you any real mechanism to maintain frameworks. &lt;/p&gt;
+</description>
+      <pubDate>Sun, 13 Jun 2010 09:20:00 -0700</pubDate>
+      <dc:date>2010-06-13T09:20:00-07:00</dc:date>
+    </item>
+    <item>
+      <title>Hacking Selenium to improve its performance on IE</title>
+      <link>blog url/selenium/performance/ie/2010/02/03/selenium-improve-performance-IE.html</link>
+      <description>&lt;p&gt;TL;DR of the post below; You have to perform all these steps &amp;amp; in some instances, you can squeeze out better performance from other browsers too:&lt;/p&gt;
+</description>
+      <pubDate>Wed, 03 Feb 2010 08:14:00 -0800</pubDate>
+      <dc:date>2010-02-03T08:14:00-08:00</dc:date>
+    </item>
     <dc:date>2012-06-26T10:34:00-07:00</dc:date>
   </channel>
 </rss>
