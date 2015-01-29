@@ -12,7 +12,7 @@
     <item>
       <title>Perl Windows - Grab all the system tray icons &amp; get their co-ordinates</title>
       <link>blog url/perl/windows/automation/2012/06/26/perl-windows-tray-automation.html</link>
-      <description>&lt;p&gt;While automating applications on Windows, every now &amp;amp; then I run in to a situation where I have to find a tray icon &amp;amp; do some mouse operations on it. And for the most part, I overlooked it as it was just a small part of my automation needs. Well, it was time to scratch that small itch as it was bothering me. So with the help of &lt;a href=&quot;http://stackoverflow.com/questions/11199287/using-perl-how-can-obtain-information-about-the-icons-in-windows-taskbar-notif&quot;&gt;Sinan on StackOverflow&lt;/a&gt;, I ended up writing this script.&lt;/p&gt;
+      <description>&lt;p&gt;While automating applications on Windows, every now &amp;amp; then I run in to a situation where I have to find a tray icon &amp;amp; do some mouse operations on it. And for the most part, I overlooked it as it was just a small part of my automation needs. Well, it was time to scratch that small itch as it was bothering me. So with the help of [Sinan on StackOverflow][sinan-so], I ended up writing this script.&lt;/p&gt;
 </description>
       <pubDate>Tue, 26 Jun 2012 10:34:00 -0700</pubDate>
       <dc:date>2012-06-26T10:34:00-07:00</dc:date>
