@@ -20,7 +20,7 @@
     <item>
       <title>iperf 2.0.4 Windows (win32) native binary</title>
       <link>blog url/iperf/windows/compiled/2010/07/23/iperf-windows-compiled.html</link>
-      <description>&lt;p&gt;The last compiled binary for Windows was v1.7.0. But, I like the newer -y option which dumps out the report in CSV format. With the help of this &lt;a href=&quot;http://sourceforge.net/tracker/index.php?func=detail&amp;amp;aid=2919936&amp;amp;group_id=128336&amp;amp;atid=711373&quot;&gt;patch&lt;/a&gt;, I managed to create a binary for Windows. You can &lt;a href=&quot;/assets/files/iperf-2.0.4-win32.zip&quot;&gt;download it here&lt;/a&gt;.&lt;/p&gt;
+      <description>&lt;p&gt;The last compiled binary for Windows was v1.7.0. But, I like the newer -y option which dumps out the report in CSV format. With the help of this &lt;a href=&quot;http://sourceforge.net/tracker/index.php?func=detail&amp;amp;aid=2919936&amp;amp;group_id=128336&amp;amp;atid=711373&quot;&gt;patch&lt;/a&gt;, I managed to create a binary for Windows. &lt;/p&gt;
 </description>
       <pubDate>Fri, 23 Jul 2010 10:29:00 -0700</pubDate>
       <dc:date>2010-07-23T10:29:00-07:00</dc:date>
