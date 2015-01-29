@@ -9,4 +9,6 @@ While automating applications on Windows, every now & then I run in to a situati
 
 This should work on both 32 & 64-bit platforms:
 
+[sinan-so]: http://stackoverflow.com/questions/11199287/using-perl-how-can-obtain-information-about-the-icons-in-windows-taskbar-notif
+
 {% gist c01a06be075ef25b86b4 %}
