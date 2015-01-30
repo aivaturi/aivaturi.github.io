@@ -9,6 +9,7 @@ paginate: 10
 baseurl: /
 domain_name: 'http://www.ivaturi.org'
 google_analytics: 'UA-1223273-3'
+permalink: pretty
 
 # Details for the RSS feed generator
 url:            'blog url'
