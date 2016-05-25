@@ -10,8 +10,10 @@ baseurl: /
 domain_name: 'http://www.ivaturi.org'
 google_analytics: 'UA-1223273-3'
 permalink: pretty
-gems: [jekyll-paginate]
+gems:
+    - jekyll-paginate
+    - jekyll-gist
 
 # Details for the RSS feed generator
-url:            'blog url'
+url:            'http://www.ivaturi.org'
 author:         'Aditya Ivaturi'

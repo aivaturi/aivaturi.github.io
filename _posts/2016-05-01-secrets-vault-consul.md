@@ -2,7 +2,7 @@
 layout: post
 title:  "Managing Secrets with Vault and Consul (Part I)"
 date:   2016-05-01 19:25:00
-categories: encryption vault consul
+categories: Encryption Vault Consul
 ---
 
 Every software as a service needs to manage secrets. These secrets can be something like database credentials or AWS access keys or Third party API tokens, or anything you deem important and need safe guards. Simply put, any information that you don't want others to access,  would be a secret. And somehow, you have to safely manage it.
