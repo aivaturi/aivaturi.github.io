@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Managing Secrets with Vault and Consul (Part I)"
+title:  "Managing Secrets with Vault and Consul (Part I - Overview)"
 date:   2016-05-01 19:25:00
 categories: Encryption Vault Consul
 ---
