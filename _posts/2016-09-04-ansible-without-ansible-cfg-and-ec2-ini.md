@@ -1,4 +1,5 @@
-yout: post
+---
+layout: post
 title:  "Ansible without ansible.cfg and ec2.ini"
 date:   2016-09-04 21:25:00
 categories: Ansible AWS
