@@ -3,7 +3,7 @@ name: Laziness, Impatience, and Hubris
 #meta_description: "Random noise"
 
 markdown: kramdown
-highlighter: pygments
+highlighter: rouge
 logo: true
 paginate: 10
 baseurl: /
